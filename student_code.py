@@ -130,18 +130,79 @@ class KnowledgeBase(object):
         # Implementation goes here
         # Not required for the extra credit assignment
 
+    def _create_indent(self, indent):
+        ct = 0
+        str = ''
+        while ct < indent:
+            str += ' '
+            ct = ct + 1
+        return str
+
+    def kb_explain_helper(self, fact_or_rule, indent):
+        str = ''
+        if isinstance(fact_or_rule, Fact):
+            str += self._create_indent(indent)
+            str += 'fact: '
+            str += fact_or_rule.statement.__str__()
+            if fact_or_rule.asserted:
+                str += ' ASSERTED'
+            str += '\n'
+            if fact_or_rule.supported_by:
+                # str += self._create_indent(indent+2)
+                # str += 'SUPPORTED BY\n'
+                for fr in fact_or_rule.supported_by:
+                    str += self._create_indent(indent + 2)
+                    str += 'SUPPORTED BY\n'
+                    str += self.kb_explain_helper(fr[0], indent + 4)
+                    str += self.kb_explain_helper(fr[1], indent + 4)
+            return str
+        elif isinstance(fact_or_rule, Rule):
+            str += self._create_indent(indent)
+            str += 'rule: ('
+            ct = 1
+            for l in fact_or_rule.lhs:
+                if ct != 1:
+                    str += ', '
+                str += l.__str__()
+                ct = ct + 1
+            str += ')'
+            str += ' -> '
+            str += fact_or_rule.rhs.__str__()
+            if fact_or_rule.asserted:
+                str += ' ASSERTED'
+            str += '\n'
+            if fact_or_rule.supported_by:
+                # str += self._create_indent(indent+2)
+                # str += 'SUPPORTED BY\n'
+                for fr in fact_or_rule.supported_by:
+                    str += self._create_indent(indent + 2)
+                    str += 'SUPPORTED BY\n'
+                    str += self.kb_explain_helper(fr[0], indent + 4)
+                    str += self.kb_explain_helper(fr[1], indent + 4)
+            return str
+
     def kb_explain(self, fact_or_rule):
         """
         Explain where the fact or rule comes from
-
         Args:
             fact_or_rule (Fact or Rule) - Fact or rule to be explained
-
         Returns:
             string explaining hierarchical support from other Facts and rules
         """
         ####################################################
         # Student code goes here
+        indent = 0
+        str = ''
+        if isinstance(fact_or_rule, Fact):
+            fact = self._get_fact(fact_or_rule)
+            if not fact:
+                return 'Fact is not in the KB'
+            return self.kb_explain_helper(fact, indent)
+        elif isinstance(fact_or_rule, Rule):
+            rule = self._get_rule(fact_or_rule)
+            if not rule:
+                return 'Rule is not in the KB'
+            return self.kb_explain_helper(rule, indent)
 
 
 class InferenceEngine(object):
